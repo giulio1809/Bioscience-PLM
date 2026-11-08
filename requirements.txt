@@ -1,0 +1,7 @@
+torch
+transformers
+Bio
+requests
+os
+pandas
+zipfile
