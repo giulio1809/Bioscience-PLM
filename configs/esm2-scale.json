@@ -1,0 +1,20 @@
+[
+  {
+    "name": "35m",
+    "model": "facebook/esm2_t12_35M_UR50D",
+    "revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+    "batch_size": 8
+  },
+  {
+    "name": "150m",
+    "model": "facebook/esm2_t30_150M_UR50D",
+    "revision": "a695f6045e2e32885fa60af20c13cb35398ce30c",
+    "batch_size": 8
+  },
+  {
+    "name": "650m",
+    "model": "facebook/esm2_t33_650M_UR50D",
+    "revision": "08e4846e537177426273712802403f7ba8261b6c",
+    "batch_size": 4
+  }
+]

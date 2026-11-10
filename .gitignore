@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local experiments
+.venv/
+.cache/
+data/
+results/
+*.egg-info/

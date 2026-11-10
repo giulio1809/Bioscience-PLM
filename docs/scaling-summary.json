@@ -1,0 +1,121 @@
+{
+  "assay_id": "BLAT_ECOLX_Stiffler_2015",
+  "n_variants": 4996,
+  "seed": 0,
+  "bootstrap_replicates": 2000,
+  "bootstrap_unit": "position; paired across models",
+  "limitation": "Within-assay uncertainty only; not generalization to other proteins or assay conditions.",
+  "runs": [
+    {
+      "path": "results/scale_gpu/35m",
+      "model": {
+        "model_id": "facebook/esm2_t12_35M_UR50D",
+        "requested_revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+        "resolved_revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+        "parameter_count": 33501394,
+        "model_load_seconds_including_download": 3.2708360380001977,
+        "precision": "float32",
+        "scoring_method": "masked_marginals"
+      },
+      "performance": {
+        "device": "cuda:0",
+        "device_name": "NVIDIA GeForce RTX 3090",
+        "batch_size_positions": 8,
+        "n_masked_positions": 263,
+        "n_forward_batches": 33,
+        "warmup_batches": 1,
+        "warmup_seconds": 0.15755838500081154,
+        "inference_seconds": 0.6653178579999803,
+        "positions_per_second": 395.2997756449937,
+        "timing_scope": "masked batch construction, forward passes, log_softmax, CPU transfers and progress; excludes load, warmup, evaluation",
+        "cuda_peak_allocated_mib": 221.32177734375,
+        "cuda_peak_reserved_mib": 264.0,
+        "cuda_memory_scope": "PyTorch allocator peaks during scoring, including resident model; not total device usage"
+      },
+      "spearman_rho": 0.5567122818766358,
+      "rho_ci95": [
+        0.5024069117525697,
+        0.6091547843368298
+      ],
+      "delta_vs_first": 0.0,
+      "delta_ci95": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "path": "results/scale_gpu/150m",
+      "model": {
+        "model_id": "facebook/esm2_t30_150M_UR50D",
+        "requested_revision": "a695f6045e2e32885fa60af20c13cb35398ce30c",
+        "resolved_revision": "a695f6045e2e32885fa60af20c13cb35398ce30c",
+        "parameter_count": 148140154,
+        "model_load_seconds_including_download": 5.480924715000583,
+        "precision": "float32",
+        "scoring_method": "masked_marginals"
+      },
+      "performance": {
+        "device": "cuda:0",
+        "device_name": "NVIDIA GeForce RTX 3090",
+        "batch_size_positions": 8,
+        "n_masked_positions": 263,
+        "n_forward_batches": 33,
+        "warmup_batches": 1,
+        "warmup_seconds": 0.2267533350004669,
+        "inference_seconds": 2.2829205540001567,
+        "positions_per_second": 115.20330812176915,
+        "timing_scope": "masked batch construction, forward passes, log_softmax, CPU transfers and progress; excludes load, warmup, evaluation",
+        "cuda_peak_allocated_mib": 687.91796875,
+        "cuda_peak_reserved_mib": 782.0,
+        "cuda_memory_scope": "PyTorch allocator peaks during scoring, including resident model; not total device usage"
+      },
+      "spearman_rho": 0.660518047136247,
+      "rho_ci95": [
+        0.6132710404475613,
+        0.702965688176929
+      ],
+      "delta_vs_first": 0.10380576525961116,
+      "delta_ci95": [
+        0.0662232648049353,
+        0.142821445716223
+      ]
+    },
+    {
+      "path": "results/scale_gpu/650m",
+      "model": {
+        "model_id": "facebook/esm2_t33_650M_UR50D",
+        "requested_revision": "08e4846e537177426273712802403f7ba8261b6c",
+        "resolved_revision": "08e4846e537177426273712802403f7ba8261b6c",
+        "parameter_count": 651043254,
+        "model_load_seconds_including_download": 10.569571563000864,
+        "precision": "float32",
+        "scoring_method": "masked_marginals"
+      },
+      "performance": {
+        "device": "cuda:0",
+        "device_name": "NVIDIA GeForce RTX 3090",
+        "batch_size_positions": 4,
+        "n_masked_positions": 263,
+        "n_forward_batches": 66,
+        "warmup_batches": 1,
+        "warmup_seconds": 0.24022032900029444,
+        "inference_seconds": 7.116428254999846,
+        "positions_per_second": 36.95674158103427,
+        "timing_scope": "masked batch construction, forward passes, log_softmax, CPU transfers and progress; excludes load, warmup, evaluation",
+        "cuda_peak_allocated_mib": 2674.85205078125,
+        "cuda_peak_reserved_mib": 2782.0,
+        "cuda_memory_scope": "PyTorch allocator peaks during scoring, including resident model; not total device usage"
+      },
+      "spearman_rho": 0.7314911989226319,
+      "rho_ci95": [
+        0.6830912367900084,
+        0.770606124612158
+      ],
+      "delta_vs_first": 0.17477891704599613,
+      "delta_ci95": [
+        0.12517056734731605,
+        0.22279551843889414
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
-torch
-transformers
-Bio
-requests
-os
+# Install the appropriate PyTorch wheel first; see README.
+-c requirements-baseline.txt
+-e .
+# Optional dependencies for the original exploratory notebook:
+biopython
 pandas
-zipfile
+requests

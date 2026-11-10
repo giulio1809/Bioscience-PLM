@@ -1,0 +1,7 @@
+# Direct dependency pins for a Python 3.12 baseline environment.
+# Full installed versions are captured in each completed run's environment.txt.
+torch==2.7.1
+transformers==4.57.1
+numpy==2.2.6
+scipy==1.15.3
+matplotlib==3.10.3
