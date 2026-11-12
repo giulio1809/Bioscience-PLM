@@ -1,0 +1,158 @@
+{
+  "assay_id": "BLAT_ECOLX_Stiffler_2015",
+  "n_variants": 4996,
+  "seed": 0,
+  "bootstrap_replicates": 2000,
+  "bootstrap_unit": "position; paired across models",
+  "limitation": "Within-assay uncertainty only; not generalization to other proteins or assay conditions.",
+  "runs": [
+    {
+      "path": "results/scale_gpu/650m",
+      "model": {
+        "model_id": "facebook/esm2_t33_650M_UR50D",
+        "requested_revision": "08e4846e537177426273712802403f7ba8261b6c",
+        "resolved_revision": "08e4846e537177426273712802403f7ba8261b6c",
+        "parameter_count": 651043254,
+        "model_load_seconds_including_download": 10.569571563000864,
+        "precision": "float32",
+        "scoring_method": "masked_marginals"
+      },
+      "performance": {
+        "device": "cuda:0",
+        "device_name": "NVIDIA GeForce RTX 3090",
+        "batch_size_positions": 4,
+        "n_masked_positions": 263,
+        "n_forward_batches": 66,
+        "warmup_batches": 1,
+        "warmup_seconds": 0.24022032900029444,
+        "inference_seconds": 7.116428254999846,
+        "positions_per_second": 36.95674158103427,
+        "timing_scope": "masked batch construction, forward passes, log_softmax, CPU transfers and progress; excludes load, warmup, evaluation",
+        "cuda_peak_allocated_mib": 2674.85205078125,
+        "cuda_peak_reserved_mib": 2782.0,
+        "cuda_memory_scope": "PyTorch allocator peaks during scoring, including resident model; not total device usage"
+      },
+      "spearman_rho": 0.7314911989226319,
+      "rho_ci95": [
+        0.6830912367900084,
+        0.770606124612158
+      ],
+      "delta_vs_first": 0.0,
+      "delta_ci95": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "path": "results/esmc_gpu/600m",
+      "model": {
+        "family": "esmc",
+        "model_id": "biohub/esmc-600m-2024-12",
+        "original_model_id": "EvolutionaryScale/esmc-600m-2024-12",
+        "requested_revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
+        "resolved_revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
+        "weights_file": "data/weights/esmc_600m_2024_12_v0.pth",
+        "weights_sha256": "8ef856e1a237ee3f995442df997a962e70057faadecf38fc0c8561bd3c2f4324",
+        "sdk_version": "3.2.1",
+        "sdk_source_sha256": {
+          "models/esm3.py": "7e2a4c4d0a717b0a7c5767e7fc3a7ebfe2d670df16ed2f4e1e1b9b076c9d7c00",
+          "models/esmc.py": "68ecd6a5ccb66b8cc03e74ce68c34b568c1f9c24e750a519b35dec117cd65ee5",
+          "models/function_decoder.py": "fad87e9844a2055f6e87ac3ee8d9549433dd9e823815cd37b7c25fd5f544735e",
+          "models/vqvae.py": "c453451c7f6562c5cf694800fe4c3dab944fa33eccb48a29564986038d48fcec",
+          "layers/attention.py": "1c0d90e13b175967d309acb1b10e460e39509f31f7e3b3f4fd90aef54c7bbc12",
+          "layers/blocks.py": "a2621b152cbd4d7223213f13c46825ab44e33f99221c298ed01cd142a2f55766",
+          "layers/codebook.py": "507ce5399a1e85fb524e887b4ebaca382e17a52e5b95fc14704bba924fb815ea",
+          "layers/ffn.py": "ffc3b6fbdd225ec5785432977c6061caa8c9ce2c5737da21260bfbc9023ece47",
+          "layers/geom_attention.py": "f6791250ea3e283efaa440e14d7e6f945b3a758619be5d41a6dbb8f161388bb4",
+          "layers/regression_head.py": "d541b00c29c07a51e63c0791373a7a6bc3b9aea811732a823df2755cf7c11121",
+          "layers/rotary.py": "6595c71ceaa676d5ccbb07a7e1f0289a57b22ec94bf690024608f03bfa018939",
+          "layers/structure_proj.py": "b852408f0b67c2f5cfbe891f4398ca5c20906a34d87ee3b984e3e476d674eb69",
+          "layers/transformer_stack.py": "0b90b292c5238b4405f1bd5a1b3a5980a4f9c1873cb6af009866536e73a071f7",
+          "tokenization/__init__.py": "10b51a0c9d6e33768aa3e5942977808736db8bbf1993dcd2ca34c585799707f9",
+          "tokenization/function_tokenizer.py": "8093a5682e281823d1284fe9fe1823b678cf5e2c592cbcc1bbd9619c42563687",
+          "tokenization/residue_tokenizer.py": "0fcba3036f9f77484212d0cfee6f491cdd01a2c2599e98af3dd5d1e2bb5ac1c1",
+          "tokenization/sasa_tokenizer.py": "d8e0825517c31569f7daaf533644cd82727d8838e08ae80ff323a4dfb3710d59",
+          "tokenization/sequence_tokenizer.py": "40b710d42c04dccfc9c3ca33862dab017e74e89bb2878bda3b6442b177073d26",
+          "tokenization/ss_tokenizer.py": "c53a9faa3b7d37656dfc5587fc0d257622af2ecc47c7bce0f2741e58a95dac05",
+          "tokenization/structure_tokenizer.py": "ac1ce0c5373d81dcef16fea3578779d0c460402088f9d03d19dfc45f9f1b0d08",
+          "tokenization/tokenizer_base.py": "e84ecbbcd3b57dc56aec19453780a8a1be40f8a807f7f5fa77552186bb44674d"
+        },
+        "parameter_count": 575036992,
+        "model_load_seconds_including_download": 4.370717683003022,
+        "precision": "float32",
+        "autocast": false,
+        "flash_attention": false,
+        "scoring_method": "masked_marginals",
+        "context_limit_tokens": 1024,
+        "tokenizer_class": "EsmSequenceTokenizer",
+        "tokenizer_vocab": {
+          "-": 30,
+          "L": 4,
+          "N": 17,
+          "<cls>": 0,
+          "R": 10,
+          "G": 6,
+          "<eos>": 2,
+          "<mask>": 32,
+          "S": 8,
+          "Q": 16,
+          "O": 28,
+          ".": 29,
+          "E": 9,
+          "W": 22,
+          "I": 12,
+          "X": 24,
+          "T": 11,
+          "<unk>": 3,
+          "<pad>": 1,
+          "|": 31,
+          "A": 5,
+          "H": 21,
+          "C": 23,
+          "Z": 27,
+          "Y": 19,
+          "D": 13,
+          "U": 26,
+          "B": 25,
+          "K": 15,
+          "P": 14,
+          "F": 18,
+          "V": 7,
+          "M": 20
+        },
+        "special_token_ids": {
+          "cls_token_id": 0,
+          "eos_token_id": 2,
+          "pad_token_id": 1,
+          "mask_token_id": 32,
+          "unk_token_id": 3
+        }
+      },
+      "performance": {
+        "device": "cuda:0",
+        "device_name": "NVIDIA GeForce RTX 3090",
+        "batch_size_positions": 4,
+        "n_masked_positions": 263,
+        "n_forward_batches": 66,
+        "warmup_batches": 1,
+        "warmup_seconds": 0.2591937639990647,
+        "inference_seconds": 6.9719241530001455,
+        "positions_per_second": 37.72272822084938,
+        "timing_scope": "masked batch construction, forward passes, log_softmax, CPU transfers and progress; excludes load, warmup, evaluation",
+        "cuda_peak_allocated_mib": 2639.103515625,
+        "cuda_peak_reserved_mib": 2850.0,
+        "cuda_memory_scope": "PyTorch allocator peaks during scoring, including resident model; not total device usage"
+      },
+      "spearman_rho": 0.7364251068186479,
+      "rho_ci95": [
+        0.6946630664898075,
+        0.769609655831016
+      ],
+      "delta_vs_first": 0.004933907896015999,
+      "delta_ci95": [
+        -0.013804326333330586,
+        0.02610209382963625
+      ]
+    }
+  ]
+}

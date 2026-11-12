@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tem1-zero-shot"
+version = "0.1.0"
+description = "ESM-2 masked-marginal baseline for ProteinGym TEM-1 mutation effects"
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "torch>=2.6,<3",
+  "transformers>=4.48.1,<4.58",
+  "numpy>=1.26,<3",
+  "scipy>=1.11,<2",
+  "matplotlib>=3.8,<4",
+]
+
+[project.optional-dependencies]
+esmc = ["esm==3.2.1", "httpx==0.28.1", "biotite==1.5.0"]
+
+[project.scripts]
+tem1 = "tem1.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,48 @@
+{
+  "model_id": "biohub/esmc-600m-2024-12",
+  "original_model_id": "EvolutionaryScale/esmc-600m-2024-12",
+  "revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
+  "weights_file": "data/weights/esmc_600m_2024_12_v0.pth",
+  "weights_sha256": "8ef856e1a237ee3f995442df997a962e70057faadecf38fc0c8561bd3c2f4324",
+  "architecture": {
+    "d_model": 1152,
+    "n_heads": 18,
+    "n_layers": 36
+  },
+  "sdk_version": "3.2.1",
+  "max_input_tokens": 1024,
+  "context_policy": "ProteinGym window_size 1024; reject longer inputs instead of windowing",
+  "proteingym_commit": "144fe22b07dfaeec2b366f2346203a9838a55b4c",
+  "proteingym_sources": {
+    "scripts/scoring_DMS_zero_shot/scoring_ESMC_substitutions.sh": {
+      "url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/scripts/scoring_DMS_zero_shot/scoring_ESMC_substitutions.sh",
+      "sha256": "91c81edee9eb1b780b2cbffe5567ce1827dcc231bf4a8f429c823bc213b12f1b"
+    },
+    "proteingym/baselines/evoscale/compute_fitness.py": {
+      "url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/proteingym/baselines/evoscale/compute_fitness.py",
+      "sha256": "be5f4915615f0699f97237059c6263c473a367abab363f61adca33ac6aa28bc0"
+    },
+    "proteingym/baselines/evoscale/esm/pretrained.py": {
+      "url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/proteingym/baselines/evoscale/esm/pretrained.py",
+      "sha256": "7b7cbb89f3f2bb47512c2df53b8b4128a4f9b02c34c3e9368ffb80686155f660"
+    },
+    "proteingym/baselines/evoscale/esm/utils/constants/esm3.py": {
+      "url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/proteingym/baselines/evoscale/esm/utils/constants/esm3.py",
+      "sha256": "f1c941b7befd9e675df035799785eaedc2595d9dd443e9e0448c2a83edad9628"
+    },
+    "benchmarks/DMS_zero_shot/substitutions/Spearman/DMS_substitutions_Spearman_DMS_level.csv": {
+      "url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/benchmarks/DMS_zero_shot/substitutions/Spearman/DMS_substitutions_Spearman_DMS_level.csv",
+      "sha256": "f432423b87f79ac9778dfac86e3d95be041d246bc618dc0a406b35b0b7466437"
+    }
+  },
+  "external_spearman": {
+    "ESM-C (600M)": 0.735,
+    "ESM2 (650M)": 0.731,
+    "ESM2 (3B)": 0.589,
+    "ESM2 (15B)": 0.43
+  },
+  "precision_note": "ProteinGym calls SDK logits with GPU BF16 autocast; our benchmark uses direct FP32 forward, TF32 off.",
+  "original_weights_commit": "7e4f32b401da05820ac00a8be676a85959dc475d",
+  "original_weights_api": "https://huggingface.co/api/models/biohub/esmc-600m-2024-12/tree/7e4f32b401da05820ac00a8be676a85959dc475d/data/weights",
+  "weights_unchanged_since_original_upload": true
+}

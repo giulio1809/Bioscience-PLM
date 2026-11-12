@@ -1,0 +1,13 @@
+{
+  "command": "run",
+  "data_dir": "data/tem1",
+  "output": "results/esmc_gpu/600m",
+  "model": "biohub/esmc-600m-2024-12",
+  "revision": "e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c",
+  "device": "cuda",
+  "batch_size": 4,
+  "threads": 4,
+  "warmup_batches": 1,
+  "limit_positions": null,
+  "local_files_only": false
+}

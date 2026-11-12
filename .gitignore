@@ -218,3 +218,25 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local experiments
+.venv/
+.cache/
+data/
+# Keep exploratory runs local; publish the three reference GPU runs.
+/results/*
+!/results/scale_gpu/
+/results/scale_gpu/*
+!/results/scale_gpu/35m/
+!/results/scale_gpu/150m/
+!/results/scale_gpu/650m/
+!/results/scale_gpu/comparison.json
+*.egg-info/
+
+.venv-esmc/
+!/results/esmc_gpu/
+/results/esmc_gpu/*
+!/results/esmc_gpu/600m/
+!/results/esmc_gpu/smoke/
+!/results/esmc_gpu/comparison.json
+!/results/esmc_gpu/verification.json

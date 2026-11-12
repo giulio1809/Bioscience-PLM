@@ -1,0 +1,10 @@
+# Separate Python 3.12 environment; preserve requirements-baseline.txt for ESM-2.
+torch==2.7.1
+torchvision==0.22.1
+transformers==4.48.1
+esm==3.2.1
+httpx==0.28.1
+biotite==1.5.0
+numpy==2.2.6
+scipy==1.15.3
+matplotlib==3.10.3
