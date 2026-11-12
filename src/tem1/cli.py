@@ -17,7 +17,7 @@ from .download import prepare_data, verify_manifest
 
 
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(description="TEM-1 / ProteinGym / ESM-2 zero-shot baseline")
+    root = argparse.ArgumentParser(description="TEM-1 / ProteinGym / ESM zero-shot benchmark")
     commands = root.add_subparsers(dest="command", required=True)
     for name in ("download", "inspect", "run"):
         sub = commands.add_parser(name)
@@ -79,19 +79,21 @@ def run(args, metadata, rows, variants, summary, manifest):
         predictions, performance = score_variants(
             model, tokenizer, metadata["target_seq"], variants, args.batch_size, args.warmup_batches,
         )
+        score_column = "esmc_score" if model_info.get("family") == "esmc" else "esm2_score"
         observed = [r["DMS_score"] for r in rows]
         metrics = evaluate(observed, predictions)
-        metrics.update({"assay_id": ASSAY_ID, "scope": "smoke_test" if smoke else "full_assay", "full_assay_n": full_count})
+        metrics.update({"assay_id": ASSAY_ID, "scope": "smoke_test" if smoke else "full_assay", "full_assay_n": full_count, "score_column": score_column})
         with (args.output / "predictions.csv").open("w", newline="") as handle:
-            fields = ["mutant", "position", "wild_type", "alternate", "DMS_score", "esm2_score"]
+            fields = ["mutant", "position", "wild_type", "alternate", "DMS_score", score_column]
             writer = csv.DictWriter(handle, fieldnames=fields)
             writer.writeheader()
             for row, variant, score in zip(rows, variants, predictions):
                 writer.writerow({"mutant": row["mutant"], "position": variant.position,
                                  "wild_type": variant.wild_type, "alternate": variant.alternate,
-                                 "DMS_score": row["DMS_score"], "esm2_score": score})
+                                 "DMS_score": row["DMS_score"], score_column: score})
         plot_results(observed, predictions, [v.position for v in variants], args.output,
-                     ASSAY_ID + (" — SMOKE TEST ONLY" if smoke else ""))
+                     ASSAY_ID + (" — SMOKE TEST ONLY" if smoke else ""),
+                     score_label="ESM-C masked log ratio" if score_column == "esmc_score" else "ESM-2 masked log ratio")
         source_files = sorted(Path(__file__).parent.glob("*.py"))
         environment = {
             "python": sys.version, "platform": platform.platform(), "cpu": platform.processor(),
@@ -100,6 +102,8 @@ def run(args, metadata, rows, variants, summary, manifest):
             "packages": {p: importlib.metadata.version(p) for p in ("torch", "transformers", "numpy", "scipy", "matplotlib")},
             "source_sha256": {p.name: sha256(p) for p in source_files},
         }
+        if model_info.get("family") == "esmc":
+            environment["packages"]["esm"] = importlib.metadata.version("esm")
         freeze = subprocess.run([sys.executable, "-m", "pip", "freeze"], capture_output=True, text=True)
         if freeze.returncode == 0:
             (args.output / "environment.txt").write_text(freeze.stdout)

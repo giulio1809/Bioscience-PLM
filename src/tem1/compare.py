@@ -38,7 +38,10 @@ def compare(paths, replicates=2000, seed=0):
                 raise ValueError('Variant annotations differ')
             if float(rows[k]['DMS_score']) != float(reference[k]['DMS_score']):
                 raise ValueError('Experimental scores differ')
-        score = np.array([float(rows[k]['esm2_score']) for k in keys])
+        column = metrics.get('score_column', 'esm2_score')
+        if column not in ('esm2_score', 'esmc_score') or any(column not in rows[k] for k in keys):
+            raise ValueError('Missing or unsupported prediction score column')
+        score = np.array([float(rows[k][column]) for k in keys])
         rho = evaluate(y, score)['spearman_rho']
         if not np.isclose(rho, metrics['spearman_rho'], atol=1e-12, rtol=0):
             raise ValueError('Saved metric disagrees with predictions')
@@ -68,9 +71,10 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('runs', nargs='+', type=Path)
     p.add_argument('--replicates', type=int, default=2000)
+    p.add_argument('--seed', type=int, default=0)
     p.add_argument('--output', type=Path, required=True)
     args = p.parse_args()
-    result = compare(args.runs, args.replicates)
+    result = compare(args.runs, args.replicates, args.seed)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open('x') as f:
         json.dump(result, f, indent=2, allow_nan=False)

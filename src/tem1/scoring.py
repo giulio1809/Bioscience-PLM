@@ -27,6 +27,9 @@ def synchronize(device: torch.device) -> None:
 
 def load_model(model_id: str, revision: str, device: torch.device, local_only: bool = False):
     """Load the original masked-language-model head, with no fine-tuning."""
+    if model_id in ('biohub/esmc-600m-2024-12', 'EvolutionaryScale/esmc-600m-2024-12'):
+        from .esmc import load_esmc
+        return load_esmc(model_id, revision, device, local_only)
     start = time.perf_counter()
     tokenizer = AutoTokenizer.from_pretrained(
         model_id, revision=revision, local_files_only=local_only, trust_remote_code=False,

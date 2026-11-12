@@ -40,3 +40,16 @@ class CompareTests(unittest.TestCase):
         p = self.paths[1] / 'metrics.json'
         m = json.loads(p.read_text()); m['spearman_rho'] = -1; p.write_text(json.dumps(m))
         with self.assertRaises(ValueError): compare(self.paths, 20)
+
+    def test_cross_family_score_columns(self):
+        p = self.paths[1] / 'predictions.csv'
+        p.write_text(p.read_text().replace('esm2_score', 'esmc_score'))
+        p = self.paths[1] / 'metrics.json'
+        m = json.loads(p.read_text()); m['score_column'] = 'esmc_score'; p.write_text(json.dumps(m))
+        result = compare(self.paths, replicates=20)
+        self.assertEqual(result['runs'][1]['delta_ci95'], [0., 0.])
+
+    def test_missing_declared_score_column_rejected(self):
+        p = self.paths[1] / 'metrics.json'
+        m = json.loads(p.read_text()); m['score_column'] = 'esmc_score'; p.write_text(json.dumps(m))
+        with self.assertRaises(ValueError): compare(self.paths, 20)

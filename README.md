@@ -1,6 +1,6 @@
 # Bioscience-PLM
 
-Valutiamo se **ESM-2**, un modello preaddestrato su sequenze proteiche, riesce a prevedere l’ordinamento degli effetti delle mutazioni di TEM-1 usando dati sperimentali pubblicati. Il benchmark confronta 35M, 150M e 650M parametri; la **baseline è 35M su GPU del 10 novembre 2026**.
+Valutiamo se i modelli proteici **ESM-2 ed ESM-C** prevedono l’ordinamento degli effetti delle mutazioni di TEM-1 usando dati pubblicati. Confrontiamo ESM-2 35M, 150M, 650M ed ESM-C 600M; la **baseline è ESM-2 35M su GPU del 10 novembre 2026**.
 
 **Indice:** [Biologia](#1-biologia-e-domanda-scientifica) · [Dati](#2-dati-e-punteggio-sperimentale) · [Metodo](#3-predizione-zero-shot) · [Risultati](#4-risultati-e-grafici) · [Bootstrap](#5-bootstrap-per-posizione) · [Notebook e sviluppi](#6-notebook-e-futuro-esperimento-supervisionato) · [Uso e riproducibilità](#7-installazione-esecuzione-e-riproducibilità)
 
@@ -45,29 +45,34 @@ Un **protein language model (pLM)** apprende regolarità delle sequenze proteich
 esm2_score = ln P(alternativa | WT mascherato) − ln P(originale | WT mascherato)
 ```
 
-`ln` è il logaritmo naturale. Per `H24V`, un valore positivo significa che il modello preferisce V a H; uno negativo indica la preferenza opposta. **Non dimostra automaticamente perdita di funzione.** `DMS_score` è un risultato sperimentale; `esm2_score` è una preferenza probabilistica: scale e zeri hanno significati diversi.
+`ln` è il logaritmo naturale. Per `H24V`, un valore positivo significa che il modello preferisce V a H; uno negativo indica la preferenza opposta. **Non dimostra automaticamente perdita di funzione.** `DMS_score` è un risultato sperimentale; `esm2_score` (oppure `esmc_score`) è una preferenza probabilistica: scale e zeri hanno significati diversi.
 
 L’ipotesi è: **le sostituzioni meno compatibili con le regolarità apprese dal modello tendono anche a compromettere maggiormente la prestazione misurata?** Il modello non riceve la concentrazione dell’antibiotico.
 
 **Zero-shot** significa nessun addestramento sulle etichette DMS di questo saggio; proteina o sequenze omologhe, cioè evolutivamente imparentate, potrebbero essere presenti nel pretraining.
 
-Il metodo conserva lo scoring originale, detto *masked marginals*: una distribuzione per posizione viene riutilizzata per tutte le sue sostituzioni. Si mantiene l’intero WT come contesto, senza troncature; inferenza senza gradienti, FP32 e TF32 disabilitato. Dati incoerenti vengono rifiutati, non filtrati silenziosamente. Il benchmark aggiunge esecuzione GPU, confronto delle tre dimensioni e valutazione statistica appaiata.
+Il metodo conserva lo scoring originale, detto *masked marginals*: una distribuzione per posizione viene riutilizzata per tutte le sue sostituzioni. Si mantiene l’intero WT come contesto, senza troncature; inferenza senza gradienti, FP32 e TF32 disabilitato. Dati incoerenti vengono rifiutati, non filtrati silenziosamente. Il benchmark confronta dimensioni e famiglie su GPU con valutazione statistica appaiata.
 
 ## 4. Risultati e grafici
 
 La **correlazione di Spearman (ρ)** confronta le graduatorie sperimentale e predetta: +1 indica ordine concorde, −1 opposto, circa 0 scarso accordo monotono. **0,73 non significa 73% di predizioni corrette**, né misura la precisione dei valori assoluti.
 
-Run completi del **10 novembre 2026**, RTX 3090, stesse 4.996 varianti:
+Run completi su **RTX 3090**, stesse 4.996 varianti: ESM-2 del **10 novembre 2026**, ESM-C del **12 novembre 2026**.
 
-| ESM-2 | Spearman ρ | Intervallo bootstrap 95% | Inferenza | Batch |
+| Modello | Spearman ρ | Intervallo bootstrap 95% | Inferenza | Batch |
 | --- | ---: | --- | ---: | ---: |
-| **35M, baseline** | **0,556712** | [0,502; 0,609] | 0,665 s | 8 |
-| 150M | 0,660518 | [0,613; 0,703] | 2,283 s | 8 |
-| 650M | 0,731491 | [0,683; 0,771] | 7,116 s | 4 |
+| **ESM-2 35M, baseline** | **0,556712** | [0,502; 0,609] | 0,665 s | 8 |
+| ESM-2 150M | 0,660518 | [0,613; 0,703] | 2,283 s | 8 |
+| ESM-2 650M | 0,731491 | [0,683; 0,771] | 7,116 s | 4 |
+| ESM-C 600M | 0,736425 | [0,695; 0,770] | 6,972 s | 4 |
 
-M significa milioni di parametri. La GPU accelera il calcolo; il miglioramento di correlazione osservato emerge dal confronto **fra modelli**. Una dimensione maggiore non garantisce risultati migliori su qualsiasi proteina. Tempi esclusi caricamento, download, warmup e grafici; batch differenti, quindi non è un confronto ottimizzato del throughput.
+M indica la dimensione nominale in milioni di parametri (ESM-C: 575.036.992 effettivi). La GPU accelera il calcolo; il miglioramento di correlazione osservato emerge dal confronto **fra modelli**. Una dimensione maggiore non garantisce risultati migliori su qualsiasi proteina. Tempi esclusi caricamento, download, warmup e grafici; batch differenti, quindi non è un confronto ottimizzato del throughput.
 
 Nei [grafici 650M](results/scale_gpu/650m/correlation.png), il pannello degli score confronta DMS sull’asse orizzontale ed ESM sul verticale: interessa la tendenza crescente, non l’uguaglianza numerica. Il pannello dei ranghi mostra direttamente l’accordo fra ordinamenti. Nel [profilo per posizione](results/scale_gpu/650m/position_profile.png), ogni punto è la media delle sostituzioni misurate: evidenzia sensibilità o tolleranza locali, senza identificarne il meccanismo biologico; la copertura può differire.
+
+**Riferimenti esterni ProteinGym, non nostri run:** per questo saggio il [CSV ufficiale versionato](https://github.com/OATML-Markslab/ProteinGym/blob/144fe22b07dfaeec2b366f2346203a9838a55b4c/benchmarks/DMS_zero_shot/substitutions/Spearman/DMS_substitutions_Spearman_DMS_level.csv) riporta ESM-C 600M **0,735**, ESM-2 650M **0,731**, ESM-2 3B **0,589** e 15B **0,430**. Non abbiamo scaricato né eseguito 3B/15B in questa estensione.
+
+ESM-C usa il checkpoint ufficiale [600m-2024-12](https://huggingface.co/biohub/esmc-600m-2024-12/tree/e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c), revisione `e4d83bc7e10fd55c92e598e545f4a76bf04a6e5c`. L’indirizzo EvolutionaryScale reindirizza a Biohub; i pesi `esmc_600m_2024_12_v0.pth` sono identici per SHA-256 all’upload originale, corrispondente al checkpoint richiamato dal loader ProteinGym. [Provenienza e hash](configs/esmc-600m.json) fissano entrambe le fonti. Il SDK ufficiale `esm==3.2.1` carica i pesi con `weights_only=True` e verifica tutte le chiavi. Tokenizer ESM-C controllato, forward diretto FP32, autocast e Flash Attention del SDK disabilitati. Il percorso ProteinGym usa invece autocast BF16 su GPU: lo **0,735 esterno non è una replica numerica del nostro FP32**, né attribuiamo con certezza tutta la differenza alla precisione.
 
 ## 5. Bootstrap per posizione
 
@@ -87,6 +92,8 @@ Sono **sottoinsiemi illustrativi**, non risultati completi. Ognuna di queste pos
 
 Calcoliamo ρ e la differenza fra modelli in ogni ripetizione. I **percentili 2,5 e 97,5** delimitano l’intervallo centrale del 95% dei valori ricampionati. Sul benchmark completo, 650M ha ρ ≈ **0,731**, intervallo **[0,683; 0,771]**; la differenza **650M − 35M ≈ +0,175**, intervallo **[+0,125; +0,223]**. Quest’ultimo è interamente positivo e sostiene il vantaggio nel ricampionamento adottato.
 
+**ESM-C 600M − ESM-2 650M:** differenza **+0,004934**, intervallo appaiato **[−0,013804; +0,026102]**, con le stesse 2.000 ripetizioni e seed 0. L’intervallo include zero: il piccolo vantaggio puntuale non sostiene un miglioramento statisticamente chiaro o generalizzabile fra famiglie. [Confronto completo](results/esmc_gpu/comparison.json).
+
 La correlazione sull’intero dataset resta un valore preciso. L’intervallo descrive variabilità interna al saggio rispetto alla composizione delle posizioni: **non** l’errore di ogni variante, le repliche di laboratorio o una garanzia di generalizzazione ad altre proteine.
 
 ## 6. Notebook e futuro esperimento supervisionato
@@ -99,7 +106,7 @@ Training e test saranno separati **per posizione**; gli iperparametri verranno s
 
 ## 7. Installazione, esecuzione e riproducibilità
 
-`src/tem1/` contiene dati, scoring, valutazione e CLI; `benchmark.py` esegue la suite, `compare.py` il bootstrap; `tests/` verifica la correttezza. `docs/` conserva soltanto il [riepilogo JSON](docs/scaling-summary.json).
+`src/tem1/` contiene dati, scoring, valutazione e CLI; `benchmark.py` esegue la suite, `compare.py` il bootstrap; `tests/` verifica la correttezza. `docs/` conserva il [riepilogo ESM-2](docs/scaling-summary.json); i nuovi artefatti sono in [results/esmc_gpu](results/esmc_gpu/).
 
 Dalla radice `Bioscience-PLM`, creare l’ambiente solo se assente:
 
@@ -145,4 +152,23 @@ La suite usa CUDA, processi separati e [revisioni immutabili](configs/esm2-scale
 
 Su Colab scegliere un runtime GPU, entrare nella repository e usare lo stesso ambiente; partire da 35M/150M con batch 2–4. Verificare CUDA e salvare gli output prima della scadenza della sessione.
 
-Le directory dei run [35M](results/scale_gpu/35m/), [150M](results/scale_gpu/150m/) e [650M](results/scale_gpu/650m/) sono versionate: conservano predizioni, metriche, grafici, configurazioni, revisioni, versioni software e hash del codice. Il [manifest degli input](results/scale_gpu/35m/input_manifest.json) registra provenienza e checksum dei dati; il [confronto completo](results/scale_gpu/comparison.json) conserva gli intervalli bootstrap. Questi artefatti sono consultabili anche su GitHub senza rieseguire il benchmark. `data/`, cache, ambiente e nuovi run restano esclusi da Git; i dati si recuperano con i comandi sopra. Gli artefatti storici restano conservati localmente. Il tentativo 3B non ha prodotto predizioni perché mancavano pesi `safetensors`; è escluso dalla suite.
+Le directory dei run [35M](results/scale_gpu/35m/), [150M](results/scale_gpu/150m/) e [650M](results/scale_gpu/650m/) insieme al [run ESM-C](results/esmc_gpu/600m/) sono predisposte al versionamento: conservano predizioni, metriche, grafici, configurazioni, revisioni, versioni software e hash del codice. Il [manifest degli input](results/scale_gpu/35m/input_manifest.json) registra provenienza e checksum dei dati; il [confronto completo](results/scale_gpu/comparison.json) conserva gli intervalli bootstrap. Questi artefatti sono consultabili anche su GitHub senza rieseguire il benchmark. `data/`, cache, ambiente e nuovi run restano esclusi da Git; i dati si recuperano con i comandi sopra. Gli artefatti storici restano conservati localmente.
+
+### ESM-C: ambiente separato e replica
+
+Il SDK richiede Transformers 4.48.1; l’ambiente ESM-2 mantiene 4.57.1. Non installare i due file di vincoli nello stesso venv. Dalla radice, con `HF_HOME` e `MPLCONFIGDIR` impostati come sopra:
+
+```bash
+uv --no-config venv --python 3.12 .venv-esmc
+uv --no-config pip install --python .venv-esmc/bin/python --index-url https://download.pytorch.org/whl/cu126 'torch==2.7.1' 'torchvision==0.22.1'
+uv --no-config pip install --python .venv-esmc/bin/python -e '.[esmc]' -c requirements-esmc.txt
+.venv-esmc/bin/python -m unittest discover -s tests -v
+.venv-esmc/bin/python -m tem1.benchmark --config configs/esmc-scale.json --sizes 600m \
+  --limit-positions 4 --output results/esmc_repeat/smoke
+.venv-esmc/bin/python -m tem1.benchmark --config configs/esmc-scale.json --sizes 600m \
+  --output results/esmc_repeat
+.venv-esmc/bin/python -m tem1.compare results/scale_gpu/650m results/esmc_repeat/600m \
+  --replicates 2000 --seed 0 --output results/esmc_repeat/comparison.json
+```
+
+**Verifiche effettive:** 30 test passati nell’ambiente ESM-C; 25 nell’ambiente ESM-2, con 5 test opzionali ESM-C saltati. Smoke test di 75 varianti e run completo conclusi; confrontati tokenizer, mascheramento, batching e forward nativo. Predizioni, metriche, [grafici](results/esmc_gpu/600m/correlation.png), [profilo](results/esmc_gpu/600m/position_profile.png), ambiente, checksum e [verifica numerica](results/esmc_gpu/verification.json) sono conservati; risultati ESM-2 e notebook invariati.

@@ -1,0 +1,16 @@
+{
+  "assay_id": "BLAT_ECOLX_Stiffler_2015",
+  "prepared_at_utc": "2026-11-08T18:11:47.943104+00:00",
+  "archive_source": "https://marks.hms.harvard.edu/proteingym/ProteinGym_v1.3/DMS_ProteinGym_substitutions.zip",
+  "reference_source": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/62eab5b3c83a3727b5b57bfbe377b24ef7545ccc/reference_files/DMS_substitutions.csv",
+  "official_release": "v1.3",
+  "archive_member": "DMS_ProteinGym_substitutions/BLAT_ECOLX_Stiffler_2015.csv",
+  "archive_sha256": "3a83766254ac9ac9984ec25cb73c6e010ea4418f5e35f143933e6b6e6473b921",
+  "sha256": {
+    "DMS_substitutions.csv": "a8f498011532a74aa9fe556a50555a75e928c5837d19c06a87592ae04049b308",
+    "BLAT_ECOLX_Stiffler_2015.csv": "82835aeecc2001c742434457102e02b5aaf38673274aaba00ac85e07bcd94f35",
+    "reference.fasta": "4e8ea2e88d31c36afb7e83e4c64d4504759de49ebc9c92254469a59f5e0bd630",
+    "assay_metadata.json": "416f913eb4e47180157bd2b020ddd6ae46bcd47a8b7daf9d9e6ea4dfc7636d1f",
+    "inspection.json": "af76d0c1ef02db5bf8cef2267ab52543a5d1bf943e813dfb2a8ca2f3c4cb32fe"
+  }
+}

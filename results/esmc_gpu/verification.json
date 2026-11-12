@@ -1,0 +1,48 @@
+{
+  "status": "passed",
+  "n_variants": 4996,
+  "smoke_variants": 75,
+  "smoke_full_max_abs_error": 0.0,
+  "pretrained_oracle": "Direct native forward with explicit BOS/residues/EOS, one mask, logit difference; batch=1 versus saved batch=4",
+  "oracle_positions": [
+    24,
+    100,
+    101,
+    286
+  ],
+  "oracle_variants": 75,
+  "oracle_max_abs_error": 2.86102294921875e-05,
+  "oracle_absolute_tolerance": 0.0001,
+  "parameter_dtype": "float32",
+  "activation_dtypes": {
+    "embedding": "torch.float32",
+    "sequence_head": "torch.float32"
+  },
+  "tf32": false,
+  "spearman_recomputed": 0.7364251068186479,
+  "tests_esmc": {
+    "passed": 30,
+    "skipped": 0
+  },
+  "tests_original_environment": {
+    "passed": 25,
+    "skipped_optional_esmc": 5
+  },
+  "existing_artifacts_checked": 69,
+  "existing_artifacts_unchanged": true,
+  "input_manifest_matches": true,
+  "output_sha256": {
+    "inspection.json": "af76d0c1ef02db5bf8cef2267ab52543a5d1bf943e813dfb2a8ca2f3c4cb32fe",
+    "input_manifest.json": "361aef676d982dc31f9c20b86a88aae99dc90bfdd7e99ad7ba332575f8c186f1",
+    "assay_metadata.json": "416f913eb4e47180157bd2b020ddd6ae46bcd47a8b7daf9d9e6ea4dfc7636d1f",
+    "config.json": "46e4b2774eb2c1802fd1d6a7a21f92d01732860b58d4419af675762d97dce601",
+    "predictions.csv": "22739e852d583da07d0afafe587316f176cc2307f641a1d008ebbc6d6947a094",
+    "correlation.png": "04aabf2b6010013af8f4d39027966afafba6bac5fff7243650c9a5ab6ac40c96",
+    "correlation.pdf": "17a0e61bc8065f7a8c7ca84e756a5fb504462d2e6a443851a2b03a666809a824",
+    "position_profile.png": "00b3b1c9d172898cb888d9ac4783907fcb0408c75d5e7b9507a1864b9e2f8f1e",
+    "environment.txt": "cb8f7b25df9c199dcc5dae5dc778e8077970548b170cb7a6a8b7d62db01270a0",
+    "metrics.json": "8a05ccdd157633a54c3813c3b508a179bad49d0fac29f628ccb9801544c48ecc",
+    "run.json": "d90596bc311a077c5d9b5feb321bc8223b4fbc316d93827a13c86c9de431be96"
+  },
+  "provenance_config_sha256": "b2fdd7bfa389455ac6ce6caf62c49fcef55bb32384c20423590a4963d6b00d69"
+}

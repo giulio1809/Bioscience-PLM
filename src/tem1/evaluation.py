@@ -22,7 +22,7 @@ def evaluate(observed, predicted) -> dict:
     }
 
 
-def plot_results(observed, predicted, positions, output: Path, title: str) -> None:
+def plot_results(observed, predicted, positions, output: Path, title: str, score_label: str = "ESM-2 masked log ratio") -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -31,7 +31,7 @@ def plot_results(observed, predicted, positions, output: Path, title: str) -> No
     rho = evaluate(observed, predicted)["spearman_rho"]
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.5), layout="constrained")
     axes[0].scatter(observed, predicted, s=7, alpha=0.2, rasterized=True)
-    axes[0].set(xlabel="Experimental DMS_score (higher = fitter)", ylabel="ESM-2 masked log ratio")
+    axes[0].set(xlabel="Experimental DMS_score (higher = fitter)", ylabel=score_label)
     axes[1].scatter(rankdata(observed), rankdata(predicted), s=7, alpha=0.2, rasterized=True)
     axes[1].set(xlabel="Experimental rank", ylabel="Predicted rank")
     fig.suptitle(f"{title}\nn = {len(observed):,}; Spearman ρ = {rho:.3f}")
