@@ -1,0 +1,9 @@
+{
+  "n_variants": 4996,
+  "spearman_rho": 0.7314911989226319,
+  "score_direction": "higher predicted and experimental scores mean more favorable",
+  "ties": "average ranks (scipy.stats.spearmanr)",
+  "assay_id": "BLAT_ECOLX_Stiffler_2015",
+  "scope": "full_assay",
+  "full_assay_n": 4996
+}

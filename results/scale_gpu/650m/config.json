@@ -1,0 +1,13 @@
+{
+  "command": "run",
+  "data_dir": "data/tem1",
+  "output": "results/scale_gpu/650m",
+  "model": "facebook/esm2_t33_650M_UR50D",
+  "revision": "08e4846e537177426273712802403f7ba8261b6c",
+  "device": "cuda",
+  "batch_size": 4,
+  "threads": 4,
+  "warmup_batches": 1,
+  "limit_positions": null,
+  "local_files_only": false
+}

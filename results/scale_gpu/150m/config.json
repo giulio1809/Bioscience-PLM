@@ -1,0 +1,13 @@
+{
+  "command": "run",
+  "data_dir": "data/tem1",
+  "output": "results/scale_gpu/150m",
+  "model": "facebook/esm2_t30_150M_UR50D",
+  "revision": "a695f6045e2e32885fa60af20c13cb35398ce30c",
+  "device": "cuda",
+  "batch_size": 8,
+  "threads": 4,
+  "warmup_batches": 1,
+  "limit_positions": null,
+  "local_files_only": false
+}

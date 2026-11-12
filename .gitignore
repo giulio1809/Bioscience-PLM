@@ -223,5 +223,12 @@ __marimo__/
 .venv/
 .cache/
 data/
-results/
+# Keep exploratory runs local; publish the three reference GPU runs.
+/results/*
+!/results/scale_gpu/
+/results/scale_gpu/*
+!/results/scale_gpu/35m/
+!/results/scale_gpu/150m/
+!/results/scale_gpu/650m/
+!/results/scale_gpu/comparison.json
 *.egg-info/
