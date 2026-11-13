@@ -1,0 +1,103 @@
+{
+  "status": "passed",
+  "n_variants": 4996,
+  "n_positions": 263,
+  "notebook_folds_reproduced": true,
+  "variants_in_folds_order": true,
+  "one_fold_per_position": true,
+  "fold_counts": {
+    "0": {
+      "variants": 1007,
+      "positions": 53
+    },
+    "1": {
+      "variants": 1007,
+      "positions": 53
+    },
+    "2": {
+      "variants": 1006,
+      "positions": 53
+    },
+    "3": {
+      "variants": 988,
+      "positions": 52
+    },
+    "4": {
+      "variants": 988,
+      "positions": 52
+    }
+  },
+  "zeroshot_method": "wild_type_marginals_unmasked",
+  "zeroshot_spearman_original": 0.6410309879404946,
+  "zeroshot_spearman_recomputed": 0.6410311447966547,
+  "zeroshot_max_abs_difference": 3.826618194580078e-05,
+  "feature_differences": {
+    "emb_mut_pos": {
+      "shape": [
+        4996,
+        640
+      ],
+      "max_abs_difference": 0.00390625,
+      "mean_abs_difference": 5.73935551528848e-07
+    },
+    "mean_pooled": {
+      "shape": [
+        4996,
+        640
+      ],
+      "max_abs_difference": 0.00048828125,
+      "mean_abs_difference": 8.765373138430732e-08
+    },
+    "mean_local_5": {
+      "shape": [
+        4996,
+        640
+      ],
+      "max_abs_difference": 0.00390625,
+      "mean_abs_difference": 2.2002161870204873e-07
+    },
+    "mean_local_10": {
+      "shape": [
+        4996,
+        640
+      ],
+      "max_abs_difference": 0.00390625,
+      "mean_abs_difference": 1.7464846280290658e-07
+    },
+    "mean_local_20": {
+      "shape": [
+        4996,
+        640
+      ],
+      "max_abs_difference": 0.00048828125,
+      "mean_abs_difference": 1.4116346847004024e-07
+    }
+  },
+  "original_artifact_sha256": {
+    "esm_wt.npz": "b553266298aff2a6d5170430d28631704b367142d5ba165bdc573b0a13ff8146",
+    "esm_variant_features.parquet": "c5a4b7b925dde3c2c5507a0aca24add77001fdc7bc19b06a96c315f567dc7016",
+    "stiffler_single_folds.csv": "9cee0b5f9da9ed553007157e64eaa4071328745440bfe1ef4ec5263b86122cf2"
+  },
+  "new_run_manifest": {
+    "checkpoint": "facebook/esm2_t30_150M_UR50D",
+    "revision": "a695f6045e2e32885fa60af20c13cb35398ce30c",
+    "folds_sha256": "9cee0b5f9da9ed553007157e64eaa4071328745440bfe1ef4ec5263b86122cf2",
+    "archive_sha256": "3a83766254ac9ac9984ec25cb73c6e010ea4418f5e35f143933e6b6e6473b921",
+    "raw_member": "DMS_ProteinGym_substitutions/BLAT_ECOLX_Stiffler_2015.csv",
+    "source_sha256": "5ab46fc229c8a42970f9cffad379e461b3d871be49d3ce554d2185756f3412db",
+    "wt_out": "/home/vince/Documents/Projects/Biosciences/Bioscience-PLM/results/mutant_embeddings_check/esm_wt.npz",
+    "precision": "float32",
+    "tf32": false,
+    "torch": "2.7.1+cu126"
+  },
+  "tests": {
+    "passed": 32,
+    "skipped_optional_esmc": 5,
+    "new_targeted_tests": 7
+  },
+  "resume_completed_run_passed": true,
+  "full_extraction_seconds_including_checkpoints": 81.6,
+  "full_run_log_excerpt": [
+    "[step 2] 4996 variants in 81.6s (61.2 variants/s)"
+  ]
+}

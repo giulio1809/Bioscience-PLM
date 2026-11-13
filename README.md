@@ -2,7 +2,7 @@
 
 Valutiamo se i modelli proteici **ESM-2 ed ESM-C** prevedono l’ordinamento degli effetti delle mutazioni di TEM-1 usando dati pubblicati. Confrontiamo ESM-2 35M, 150M, 650M ed ESM-C 600M; la **baseline è ESM-2 35M su GPU del 10 novembre 2026**.
 
-**Indice:** [Biologia](#1-biologia-e-domanda-scientifica) · [Dati](#2-dati-e-punteggio-sperimentale) · [Metodo](#3-predizione-zero-shot) · [Risultati](#4-risultati-e-grafici) · [Bootstrap](#5-bootstrap-per-posizione) · [Notebook e sviluppi](#6-notebook-e-futuro-esperimento-supervisionato) · [Uso e riproducibilità](#7-installazione-esecuzione-e-riproducibilità)
+**Indice:** [Biologia](#1-biologia-e-domanda-scientifica) · [Dati](#2-dati-e-punteggio-sperimentale) · [Metodo](#3-predizione-zero-shot) · [Risultati](#4-risultati-e-grafici) · [Bootstrap](#5-bootstrap-per-posizione) · [Notebook e sviluppi](#6-notebook-e-futuro-esperimento-supervisionato) · [Preparazione embedding](#preparazione-degli-embedding-mutanti) · [Uso e riproducibilità](#7-installazione-esecuzione-e-riproducibilità)
 
 ## 1. Biologia e domanda scientifica
 
@@ -98,11 +98,35 @@ La correlazione sull’intero dataset resta un valore preciso. L’intervallo de
 
 ## 6. Notebook e futuro esperimento supervisionato
 
-[tem1_exploration.ipynb](tem1_exploration.ipynb) conserva l’esplorazione iniziale: estrae **embedding**, rappresentazioni numeriche del WT, con ESM-2 150M ed esplora i DMS. Non contiene un predittore supervisionato delle varianti. Avviarlo dalla radice della repository: i percorsi relativi di FASTA e ZIP restano validi. Il notebook scarica il FASTA e usa CPU; non sostituisce la pipeline riproducibile.
+[tem1_exploration.ipynb](tem1_exploration.ipynb) conserva l’esplorazione iniziale: estrae **embedding**, rappresentazioni numeriche del WT, con ESM-2 150M, esplora i DMS e prepara cinque fold per posizione. Non contiene un predittore supervisionato delle varianti. Avviarlo dalla radice della repository: i percorsi relativi di FASTA e ZIP restano validi. Il notebook scarica il FASTA e usa CPU; non sostituisce la pipeline riproducibile.
 
 Il futuro esperimento supervisionato, **non ancora implementato**, avrà logica in moduli Python riutilizzabili ed eventualmente un notebook per esplorazione e presentazione. Prima baseline: pLM **congelato**, senza aggiornare i suoi parametri, e regressore semplice addestrato sui DMS. Servono rappresentazioni distinte, per esempio embedding delle sequenze mutate o differenze rispetto al WT: un unico vettore globale WT identico per tutte le varianti non basta.
 
 Training e test saranno separati **per posizione**; gli iperparametri verranno scelti con validazione interna al training, senza usare il test. Confronteremo regressore e zero-shot sulle **stesse posizioni di test**. Generalizzare ad altre proteine richiederà ulteriori saggi e controllo dell’omologia.
+
+### Preparazione degli embedding mutanti
+
+Preparazione verificata sulla RTX 3090: estrazione completa di 4.996 varianti in circa 82 s, ripresa senza ricalcolo e 32 test passati (5 opzionali ESM-C saltati). I fold del notebook riproducono esattamente il CSV; gli artefatti forniti sono stati conservati. [Esito e confronto numerico](docs/embedding-validation.json).
+
+Il branch aggiunge `stiffler_single_folds.csv`, `compute_esm_features.py` e gli artefatti [WT](esm_wt.npz) e [varianti](esm_variant_features.parquet). I **4.996 mutanti** coprono **263 posizioni**, ognuna in un solo fold: i fold 0–4 contengono rispettivamente **53, 53, 53, 52, 52 posizioni**. Le celle finali del notebook generano questa tabella con `GroupKFold`; per confronti futuri riutilizzare il CSV fissato, senza riassegnare i fold.
+
+Lo script applica ESM-2 150M congelato a ogni sequenza mutata e salva cinque vettori da **640 componenti**: residuo mutato, media dell’intera sequenza e medie nelle finestre di raggio 5, 10 e 20 residui, limitate ai bordi. Sono esclusi i token speciali; i vettori sono memorizzati in FP16, mentre il nuovo calcolo usa FP32. Non è ancora addestrato alcun regressore.
+
+La colonna **`zeroshot` usa un unico forward del WT senza masking**: confronta alternativa e originale nei logits del WT visibile al modello. È uno score distinto dalla precedente baseline **masked-marginals**, che nasconde il sito. Il Parquet conserva `mutant`, `position` e `fold`: associare i target DMS tramite un join su **`mutant`** con controllo uno-a-uno, non tramite la posizione delle righe.
+
+Dalla radice, con le variabili di cache della sezione seguente:
+
+```bash
+uv --no-config pip install --python .venv/bin/python -e . -c requirements-baseline.txt
+# Verifica gli artefatti forniti, senza inferenza né sovrascritture.
+.venv/bin/python compute_esm_features.py --validate-only --local-files-only
+# Estrazione completa in percorsi nuovi (rimuovere --local-files-only se manca il modello in cache).
+.venv/bin/python compute_esm_features.py --device cuda --batch-size 32 --local-files-only \
+  --wt-out results/embedding_run/esm_wt.npz \
+  --variants-out results/embedding_run/esm_variant_features.parquet
+```
+
+I nuovi run fissano la revisione `a695f6045e2e32885fa60af20c13cb35398ce30c` e salvano un manifest `.parquet.run.json`. Ripetendo il comando si riprendono soltanto run con provenienza compatibile. Gli artefatti originari non registrano la revisione: sono validabili, ma non vengono mescolati automaticamente con nuove estrazioni. Lo script controlla annotazioni, target, unicità dei fold, dimensioni e finitezza dei vettori; al termine ripristina l’ordine del CSV dei fold anche dopo una ripresa.
 
 ## 7. Installazione, esecuzione e riproducibilità
 

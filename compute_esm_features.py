@@ -34,6 +34,8 @@ from __future__ import annotations
 
 import argparse
 import io
+import json
+import hashlib
 import re
 import sys
 import time
@@ -50,6 +52,7 @@ AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
 MUTATION = re.compile(r"([ACDEFGHIKLMNPQRSTVWY])([1-9][0-9]*)([ACDEFGHIKLMNPQRSTVWY])")
 
 DEFAULT_CHECKPOINT = "facebook/esm2_t30_150M_UR50D"
+DEFAULT_REVISION = "a695f6045e2e32885fa60af20c13cb35398ce30c"
 DEFAULT_FOLDS = "stiffler_single_folds.csv"
 DEFAULT_ZIP = "proteingym_substitutions.zip"
 DEFAULT_RAW_MEMBER = "DMS_ProteinGym_substitutions/BLAT_ECOLX_Stiffler_2015.csv"
@@ -76,7 +79,7 @@ def read_raw_assay(zip_path: Path, member: str) -> pd.DataFrame:
             fail(f"{member} not found in {zip_path}")
         with archive.open(member) as handle:
             raw = pd.read_csv(io.BytesIO(handle.read()))
-    required = {"mutant", "mutated_sequence"}
+    required = {"mutant", "mutated_sequence", "DMS_score"}
     if not required.issubset(raw.columns):
         fail(f"raw assay lacks columns {sorted(required - set(raw.columns))}")
     return raw
@@ -96,6 +99,59 @@ def revert_mutation(mutant: str, mutated_sequence: str) -> str:
             f"expected {mut_aa!r}"
         )
     return mutated_sequence[: position - 1] + wt_aa + mutated_sequence[position:]
+
+
+def file_hash(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open('rb') as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def validate_folds(raw: pd.DataFrame, folds: pd.DataFrame) -> None:
+    """Join by variant identity, never assume input row order matches."""
+    if raw.empty or folds.empty or raw['mutant'].duplicated().any() or folds['mutant'].duplicated().any():
+        fail('empty table or duplicate variants')
+    if set(raw['mutant']) != set(folds['mutant']):
+        fail('folds variant set differs from raw assay')
+    for column in ('position', 'fold'):
+        values = pd.to_numeric(folds[column], errors='coerce').to_numpy(dtype=float)
+        if not np.isfinite(values).all() or not np.equal(values, np.floor(values)).all():
+            fail(f'{column} must contain finite integers')
+        folds[column] = values.astype(np.int64)
+    if set(folds['fold']) != set(range(5)):
+        fail('expected five folds numbered 0..4')
+    if not folds.groupby('position')['fold'].nunique().eq(1).all():
+        fail('a position belongs to more than one fold')
+    for row in folds.itertuples():
+        match = MUTATION.fullmatch(str(row.mutant))
+        if match is None or (match[1], int(match[2]), match[3]) != (row.wt_aa, row.position, row.mut_aa):
+            fail(f'{row.mutant}: annotation disagrees with fold columns')
+        if row.wt_aa == row.mut_aa:
+            fail(f'{row.mutant}: synonymous substitution')
+    observed = pd.to_numeric(folds['DMS_score'], errors='coerce').to_numpy(dtype=float)
+    expected = pd.to_numeric(raw.set_index('mutant').loc[folds['mutant'], 'DMS_score'], errors='coerce').to_numpy(dtype=float)
+    if not np.isfinite(observed).all() or not np.isfinite(expected).all() or not np.allclose(observed, expected, atol=1e-12, rtol=0):
+        fail('DMS scores differ from raw assay or are non-finite')
+
+
+def validate_completed(completed: pd.DataFrame, folds: pd.DataFrame, hidden_size: int) -> None:
+    if completed.empty:
+        return
+    if completed['mutant'].duplicated().any() or not set(completed['mutant']).issubset(set(folds['mutant'])):
+        fail('completed variants are duplicated or absent from folds')
+    expected = folds.set_index('mutant').loc[completed['mutant']]
+    for column in ('position', 'fold'):
+        if not np.array_equal(completed[column].to_numpy(), expected[column].to_numpy()):
+            fail(f'completed {column} differs from folds')
+    if not np.isfinite(completed['zeroshot'].to_numpy(dtype=float)).all():
+        fail('non-finite completed zeroshot')
+    for column in FEATURE_COLUMNS:
+        for vector in completed[column]:
+            array = np.asarray(vector)
+            if array.shape != (hidden_size,) or array.dtype != np.float16 or not np.isfinite(array).all():
+                fail(f'{column}: expected finite float16 vector of length {hidden_size}')
 
 
 def reconstruct_reference(raw: pd.DataFrame, folds: pd.DataFrame, n_random: int, seed: int) -> str:
@@ -140,12 +196,13 @@ def select_device(requested: str) -> torch.device:
     return torch.device(requested)
 
 
-def load_model(checkpoint: str, device: torch.device):
-    tokenizer = EsmTokenizer.from_pretrained(checkpoint)
-    model = EsmForMaskedLM.from_pretrained(checkpoint)
+def load_model(checkpoint: str, device: torch.device, revision: str, local_only: bool = False):
+    tokenizer = EsmTokenizer.from_pretrained(checkpoint, revision=revision, local_files_only=local_only)
+    model = EsmForMaskedLM.from_pretrained(checkpoint, revision=revision,
+                                         local_files_only=local_only, use_safetensors=True)
     if model.config.model_type != "esm":
         fail(f"{checkpoint} is not an ESM masked language model")
-    model = model.to(device).eval()
+    model = model.float().to(device).eval()
     for parameter in model.parameters():
         parameter.requires_grad_(False)
     return model, tokenizer
@@ -171,7 +228,7 @@ def residue_slice(tokenizer, sequence: str) -> slice:
     residue_index = np.flatnonzero(~special)
     if len(residue_index) != len(sequence):
         fail(f"tokenizer produced {len(residue_index)} residues for a {len(sequence)}-residue sequence")
-    if residue_index[0] != 0 and residue_index[-1] != residue_index[0] + len(sequence) - 1:
+    if not np.array_equal(residue_index, np.arange(residue_index[0], residue_index[0] + len(sequence))):
         fail("residue tokens are not contiguous in the tokenized sequence")
     expected = tokenizer.convert_tokens_to_ids(list(sequence))
     actual = np.asarray(encoded["input_ids"])[residue_index].tolist()
@@ -237,12 +294,9 @@ def zero_shot_scores(wt_logits: np.ndarray, folds: pd.DataFrame, aa_ids: dict[st
 
     wt_ids = np.array([aa_ids[aa] for aa in folds["wt_aa"]])
     mut_ids = np.array([aa_ids[aa] for aa in folds["mut_aa"]])
-    rows = np.arange(len(folds))
     scores = log_probs[positions - 1, mut_ids] - log_probs[positions - 1, wt_ids]
     if not np.all(np.isfinite(scores)):
         fail("non-finite zero-shot scores")
-    if not np.array_equal(rows, np.arange(len(folds))):  # pragma: no cover - defensive
-        fail("row alignment broken while computing zero-shot scores")
     return scores
 
 
@@ -392,7 +446,7 @@ def check_first_variant(model, tokenizer, wt_seq: str, row, wt_hidden: np.ndarra
 
 
 def report(folds: pd.DataFrame, results: pd.DataFrame, wt_path: Path, variants_path: Path,
-           checkpoint: str) -> None:
+           checkpoint: str, tokenizer) -> None:
     import transformers
 
     if len(results) != len(folds):
@@ -410,7 +464,7 @@ def report(folds: pd.DataFrame, results: pd.DataFrame, wt_path: Path, variants_p
     # Recompute zero-shot independently from the saved logits and require agreement.
     # esm_wt.npz stores fp16 logits (~1e-3 relative), so the tolerance covers that
     # rounding; a misaligned column is off by orders of magnitude more.
-    aa_ids = amino_acid_token_ids(EsmTokenizer.from_pretrained(checkpoint))
+    aa_ids = amino_acid_token_ids(tokenizer)
     expected = zero_shot_scores(np.load(wt_path)["wt_logits"], merged.reset_index(drop=True), aa_ids)
     stored_zeroshot = merged["zeroshot"].to_numpy(dtype=np.float64)
     zeroshot_deviation = float(np.max(np.abs(expected - stored_zeroshot)))
@@ -424,6 +478,7 @@ def report(folds: pd.DataFrame, results: pd.DataFrame, wt_path: Path, variants_p
     if merged["zeroshot"].nunique() < 0.9 * len(merged):
         fail("zeroshot has too few distinct values; the column is probably misaligned")
 
+    validate_completed(results, folds, np.load(wt_path)["wt_hidden"].shape[1])
     features = {column: np.stack(merged[column].to_numpy()) for column in FEATURE_COLUMNS}
     for column, matrix in features.items():
         if matrix.dtype != np.float16:
@@ -492,6 +547,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--zip", type=Path, default=Path(DEFAULT_ZIP))
     parser.add_argument("--raw-member", default=DEFAULT_RAW_MEMBER)
     parser.add_argument("--checkpoint", default=DEFAULT_CHECKPOINT)
+    parser.add_argument("--revision", help="Immutable HF commit; default pins ESM-2 150M")
+    parser.add_argument("--local-files-only", action="store_true")
+    parser.add_argument("--validate-only", action="store_true", help="Check existing artifacts without inference or writes")
     parser.add_argument("--wt-out", type=Path, default=Path(DEFAULT_WT_OUT))
     parser.add_argument("--variants-out", type=Path, default=Path(DEFAULT_VARIANTS_OUT))
     parser.add_argument("--device", default="auto", choices=("auto", "cuda", "cpu"))
@@ -521,11 +579,53 @@ def main(argv: list[str] | None = None) -> int:
           f"folds {sorted(folds['fold'].unique().tolist())} (copied unchanged)")
 
     raw = read_raw_assay(args.zip, args.raw_member)
+    validate_folds(raw, folds)
     wt_seq = reconstruct_reference(raw, folds, args.n_random, args.seed)
+    revision = args.revision or (DEFAULT_REVISION if args.checkpoint == DEFAULT_CHECKPOINT else None)
+    if revision is None or re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        fail("supply an immutable --revision for the chosen checkpoint")
+    if args.validate_only:
+        tokenizer = EsmTokenizer.from_pretrained(args.checkpoint, revision=revision,
+                                                 local_files_only=args.local_files_only)
+        with np.load(args.wt_out) as saved:
+            if str(saved['checkpoint_name']) != args.checkpoint:
+                fail("WT checkpoint differs from requested model")
+            if saved['wt_hidden'].shape[0] != len(wt_seq) or saved['wt_logits'].shape[0] != len(wt_seq):
+                fail("WT length differs from reference")
+            if not all(np.isfinite(saved[k]).all() for k in ('wt_hidden','wt_logits')):
+                fail("non-finite WT arrays")
+        report(folds, load_completed(args.variants_out), args.wt_out, args.variants_out,
+               args.checkpoint, tokenizer)
+        return 0
+    # Never mix partial results from different inputs/checkpoints or overwrite a legacy WT.
+    manifest_path = args.variants_out.with_suffix(args.variants_out.suffix + '.run.json')
+    signature = {'checkpoint': args.checkpoint, 'revision': revision,
+                 'folds_sha256': file_hash(args.folds), 'archive_sha256': file_hash(args.zip),
+                 'raw_member': args.raw_member, 'source_sha256': file_hash(Path(__file__)),
+                 'wt_out': str(args.wt_out.resolve()), 'precision': 'float32', 'tf32': False,
+                 'torch': torch.__version__}
+    if args.variants_out.exists():
+        if not manifest_path.exists() or json.loads(manifest_path.read_text()) != signature:
+            fail("resume provenance missing or changed; validate legacy artifacts with --validate-only or choose fresh output paths")
+        if not args.wt_out.exists():
+            fail("resume requires the matching WT artifact")
+    elif args.wt_out.exists():
+        fail("WT output already exists; choose fresh output paths")
+    completed = load_completed(args.variants_out)
+    torch.set_num_threads(4)
+    torch.manual_seed(args.seed)
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
 
     device = select_device(args.device)
     print(f"[model] loading {args.checkpoint} on {device}")
-    model, tokenizer = load_model(args.checkpoint, device)
+    model, tokenizer = load_model(args.checkpoint, device, revision, args.local_files_only)
+    if len(wt_seq) + 2 > model.config.max_position_embeddings:
+        fail("reference exceeds model context; truncation forbidden")
+    validate_completed(completed, folds, model.config.hidden_size)
+    for path in (args.wt_out, args.variants_out):
+        path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(signature, indent=2) + "\n")
     aa_ids = amino_acid_token_ids(tokenizer)
     print(f"[model] hidden size {model.config.hidden_size}, vocab {model.config.vocab_size}, "
           f"parameters {sum(p.numel() for p in model.parameters()):,}")
@@ -539,11 +639,16 @@ def main(argv: list[str] | None = None) -> int:
         check_first_variant(model, tokenizer, wt_seq, folds.iloc[0], wt["hidden"], wt["logits"],
                             aa_ids, device)
 
-    completed = load_completed(args.variants_out)
+    if len(completed):
+        expected = pd.Series(zeroshot, index=folds['mutant']).loc[completed['mutant']].to_numpy()
+        if not np.allclose(expected, completed['zeroshot'], atol=1e-4, rtol=0):
+            fail("resume zeroshot differs from current WT scores")
     results = compute_variants(model, tokenizer, wt_seq, folds, zeroshot, device,
                                args.batch_size, args.variants_out, completed)
+    # A resumed run may append missing rows after completed ones; restore folds order.
+    results = results.set_index('mutant').loc[folds['mutant']].reset_index()
     write_parquet(results, args.variants_out)
-    report(folds, results, args.wt_out, args.variants_out, args.checkpoint)
+    report(folds, results, args.wt_out, args.variants_out, args.checkpoint, tokenizer)
     return 0
 
 
