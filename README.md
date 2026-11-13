@@ -124,7 +124,7 @@ python -m unittest discover -s tests -v
 Python supportato: 3.10–3.13. `--no-config` evita l’incompatibilità locale fra uv 0.9.28 e la configurazione di sistema. I vincoli diretti non sono un lockfile completo. Per il notebook:
 
 ```bash
-uv --no-config pip install --python .venv/bin/python -c requirements-baseline.txt biopython pandas requests jupyter
+uv --no-config pip install --python .venv/bin/python -c requirements-baseline.txt biopython requests jupyter
 jupyter notebook tem1_exploration.ipynb
 ```
 

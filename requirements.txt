@@ -3,5 +3,4 @@
 -e .
 # Optional dependencies for the original exploratory notebook:
 biopython
-pandas
 requests

@@ -5,3 +5,6 @@ transformers==4.57.1
 numpy==2.2.6
 scipy==1.15.3
 matplotlib==3.10.3
+pandas==3.1.1
+pyarrow==26.0.1
+tqdm==4.70.1
